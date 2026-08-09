@@ -23,12 +23,16 @@ Twonara is a simple, mobile-first website for couples to discover places and bui
 - Simple mobile navigation
 - Date Plan entry point
 
-### Phase 2 — Explore & place details
-- Search and filters
-- Category listing pages
-- Place detail page
-- Save / favorite
-- Add to Date Plan
+### Phase 2 — Explore & place details ✅
+- Search across places and experiences
+- Do, Eat, Privacy, Relax and Stay filters
+- Open-now filter
+- Recommended, top-rated, nearest and budget sorting
+- Responsive Explore results
+- Full place detail view
+- Save / favorite places
+- Add / remove places from Date Plan
+- Mobile-friendly detail layout
 
 ### Phase 3 — Date Planner
 - Create plan
@@ -66,3 +70,5 @@ Twonara is a simple, mobile-first website for couples to discover places and bui
 npm install
 npm run dev
 ```
+
+After pulling a new phase, restart the Vite dev server if needed.
