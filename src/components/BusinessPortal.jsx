@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, BarChart3, Building2, Check, CircleDollarSign, Clock3, Eye, MapPin, Plus, Store } from 'lucide-react';
 import { adPlans, categories } from '../data/seed';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { startPayHereCheckout } from '../lib/payhere';
 
 const emptyForm = {
   name: '', category: 'Eat', location: 'Negombo', address: '', description: '', price: '', estimatedCost: '',
@@ -22,8 +23,8 @@ function BusinessPortal({ session, listings, setListings, onBack, onSignOut }) {
   const liveCount = myListings.filter((item) => item.status === 'approved').length;
   const pendingCount = myListings.filter((item) => item.status === 'pending').length;
   const views = myListings.reduce((sum, item) => sum + (item.views || 0), 0);
-
   const selectedPlan = adPlans.find((item) => item.id === form.adPlan) || adPlans[0];
+
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
   const submitListing = async (event) => {
@@ -31,8 +32,12 @@ function BusinessPortal({ session, listings, setListings, onBack, onSignOut }) {
     setBusy(true);
     setMessage('');
 
+    const listingId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `listing-${Date.now()}`;
+
     const listing = {
-      id: `listing-${Date.now()}`,
+      id: listingId,
       ownerId: session.id,
       businessName: form.name.trim(),
       name: form.name.trim(),
@@ -80,10 +85,16 @@ function BusinessPortal({ session, listings, setListings, onBack, onSignOut }) {
 
       setListings((current) => [listing, ...current]);
       setForm(emptyForm);
-      setMessage(selectedPlan.price > 0 && !isSupabaseConfigured
-        ? 'Listing submitted in demo mode. Paid-plan checkout activates after PayHere + Supabase are configured.'
-        : 'Listing submitted for admin review.');
       setTab('dashboard');
+
+      if (selectedPlan.price > 0 && isSupabaseConfigured) {
+        setMessage('Listing saved. Redirecting to secure PayHere checkout…');
+        await startPayHereCheckout({ listingId: listing.id, plan: listing.adPlan });
+      } else if (selectedPlan.price > 0) {
+        setMessage('Listing submitted in demo mode. No real payment was taken; you can test admin approval now.');
+      } else {
+        setMessage('Free listing submitted for admin review.');
+      }
     } catch (error) {
       setMessage(error.message || 'Could not submit listing.');
     } finally {
@@ -127,7 +138,7 @@ function BusinessPortal({ session, listings, setListings, onBack, onSignOut }) {
                 {myListings.map((listing) => (
                   <article key={listing.id}>
                     <div className="business-list-image">{listing.image ? <img src={listing.image} alt="" /> : <Store size={24} />}</div>
-                    <div className="business-list-main"><strong>{listing.name}</strong><span><MapPin size={14} /> {listing.location} · {listing.category}</span><small>{adPlans.find((plan) => plan.id === listing.adPlan)?.name || 'Free'} plan</small></div>
+                    <div className="business-list-main"><strong>{listing.name}</strong><span><MapPin size={14} /> {listing.location} · {listing.category}</span><small>{adPlans.find((plan) => plan.id === listing.adPlan)?.name || 'Free'} plan · payment: {listing.paymentStatus}</small></div>
                     <StatusBadge status={listing.status} />
                   </article>
                 ))}
@@ -159,8 +170,8 @@ function BusinessPortal({ session, listings, setListings, onBack, onSignOut }) {
               <div>{adPlans.map((plan) => <button type="button" key={plan.id} className={form.adPlan === plan.id ? 'active' : ''} onClick={() => update('adPlan', plan.id)}><strong>{plan.name}</strong><small>{plan.price ? `Rs. ${plan.price.toLocaleString()} / ${plan.period}` : 'Free'}</small></button>)}</div>
             </div>
 
-            <div className="submit-note"><CircleDollarSign size={18} /><p>{selectedPlan.price === 0 ? 'No payment is needed for the Free plan.' : isSupabaseConfigured ? 'Paid plan checkout is handled through the server-side PayHere function so your Merchant Secret never goes into the browser.' : 'Demo mode: no real payment will be taken. You can still test the admin approval workflow.'}</p></div>
-            <button className="primary-wide-button" type="submit" disabled={busy}><Plus size={18} /> {busy ? 'Submitting…' : 'Submit for review'}</button>
+            <div className="submit-note"><CircleDollarSign size={18} /><p>{selectedPlan.price === 0 ? 'No payment is needed for the Free plan.' : isSupabaseConfigured ? 'After saving the listing you will be redirected to PayHere. Twonara only marks it paid after the signed server callback is verified.' : 'Demo mode: no real payment will be taken. You can still test the admin approval workflow.'}</p></div>
+            <button className="primary-wide-button" type="submit" disabled={busy}><Plus size={18} /> {busy ? 'Submitting…' : selectedPlan.price > 0 && isSupabaseConfigured ? 'Save & continue to payment' : 'Submit for review'}</button>
           </form>
 
           <aside className="post-help-card"><BarChart3 size={25} /><h3>Keep listings useful</h3><p>Use accurate prices, clear photos, real contact details and venue rules. Twonara can reject misleading or unsafe listings.</p></aside>
