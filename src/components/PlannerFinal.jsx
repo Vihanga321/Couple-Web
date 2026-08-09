@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, CalendarDays, ChevronRight, Clock3, MapPin, Plus, Save, Share2, Trash2, WalletCards } from 'lucide-react';
 import { usePersistentState } from '../lib/storage';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 function formatCurrency(value) {
   return `Rs. ${Number(value || 0).toLocaleString('en-LK')}`;
 }
 
-function PlannerFinal({ places, planItems, setPlanItems, location, session, savedPlans, setSavedPlans, onExplore, onOpenPlace, onNeedLogin }) {
+function DatePlanner({ places, planItems, setPlanItems, location, session, savedPlans, setSavedPlans, onExplore, onOpenPlace, onNeedLogin }) {
   const [planName, setPlanName] = usePersistentState('twonara:plan-name', `Our ${location} Date`);
   const [planDate, setPlanDate] = usePersistentState('twonara:plan-date', '');
   const [times, setTimes] = usePersistentState('twonara:plan-times', {});
   const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const plannedPlaces = useMemo(() => planItems.map((id) => places.find((place) => place.id === id)).filter(Boolean), [planItems, places]);
   const estimatedTotal = plannedPlaces.reduce((sum, place) => sum + Number(place.estimatedCost || 0), 0);
@@ -46,26 +48,71 @@ function PlannerFinal({ places, planItems, setPlanItems, location, session, save
     window.setTimeout(() => setMessage(''), 2200);
   };
 
-  const savePlan = () => {
-    if (!plannedPlaces.length) return;
+  const savePlan = async () => {
+    if (!plannedPlaces.length || saving) return;
     if (!session) {
       onNeedLogin();
       return;
     }
-    const plan = {
-      id: `plan-${Date.now()}`,
-      ownerId: session.id,
-      name: planName || 'Our Date',
-      date: planDate,
-      location,
-      items: [...planItems],
-      times: { ...times },
-      estimatedTotal,
-      createdAt: new Date().toISOString(),
-    };
-    setSavedPlans((current) => [plan, ...current]);
-    setMessage('Date plan saved to your account.');
-    window.setTimeout(() => setMessage(''), 2200);
+
+    setSaving(true);
+    setMessage('');
+
+    try {
+      let savedId = `plan-${Date.now()}`;
+
+      if (isSupabaseConfigured && supabase) {
+        const { data: planRow, error: planError } = await supabase
+          .from('date_plans')
+          .insert({
+            user_id: session.id,
+            name: planName || 'Our Date',
+            plan_date: planDate || null,
+            location,
+            estimated_total: estimatedTotal,
+          })
+          .select('id, created_at')
+          .single();
+
+        if (planError) throw planError;
+        savedId = planRow.id;
+
+        const itemRows = plannedPlaces.map((place, index) => ({
+          plan_id: savedId,
+          place_ref: place.id,
+          position: index,
+          visit_time: times[place.id] || null,
+        }));
+
+        if (itemRows.length) {
+          const { error: itemError } = await supabase.from('date_plan_items').insert(itemRows);
+          if (itemError) {
+            await supabase.from('date_plans').delete().eq('id', savedId);
+            throw itemError;
+          }
+        }
+      }
+
+      const plan = {
+        id: savedId,
+        ownerId: session.id,
+        name: planName || 'Our Date',
+        date: planDate,
+        location,
+        items: [...planItems],
+        times: { ...times },
+        estimatedTotal,
+        createdAt: new Date().toISOString(),
+      };
+
+      setSavedPlans((current) => [plan, ...current.filter((item) => item.id !== savedId)]);
+      setMessage('Date plan saved to your account.');
+    } catch (error) {
+      setMessage(error.message || 'Could not save this plan.');
+    } finally {
+      setSaving(false);
+      window.setTimeout(() => setMessage(''), 2600);
+    }
   };
 
   return (
@@ -97,11 +144,11 @@ function PlannerFinal({ places, planItems, setPlanItems, location, session, save
             </div>
           </div>
 
-          <aside className="plan-summary-card"><span className="mini-label">Plan summary</span><h2>{planName || 'Our Date'}</h2><p className="plan-summary-location"><MapPin size={15} /> {location}</p><div className="plan-summary-stats"><div><span>Stops</span><strong>{plannedPlaces.length}</strong></div><div><span>Approx. distance</span><strong>{totalDistance.toFixed(1)} km</strong></div><div className="budget-row"><span>Estimated total</span><strong>{formatCurrency(estimatedTotal)}</strong></div></div><p className="budget-note">Prices are estimates. Check final prices and venue rules before going.</p><button className="save-plan-button" onClick={savePlan}><Save size={18} /> Save plan</button><button className="share-plan-button" onClick={sharePlan}><Share2 size={18} /> Share date plan</button>{message && <div className="share-feedback">{message}</div>}<small className="saved-count">{session ? `${savedPlans.filter((item) => item.ownerId === session.id).length} saved plan(s) on this account` : 'Sign in to save plans'}</small></aside>
+          <aside className="plan-summary-card"><span className="mini-label">Plan summary</span><h2>{planName || 'Our Date'}</h2><p className="plan-summary-location"><MapPin size={15} /> {location}</p><div className="plan-summary-stats"><div><span>Stops</span><strong>{plannedPlaces.length}</strong></div><div><span>Approx. distance</span><strong>{totalDistance.toFixed(1)} km</strong></div><div className="budget-row"><span>Estimated total</span><strong>{formatCurrency(estimatedTotal)}</strong></div></div><p className="budget-note">Prices are estimates. Check final prices and venue rules before going.</p><button className="save-plan-button" onClick={savePlan} disabled={saving}><Save size={18} /> {saving ? 'Saving…' : 'Save plan'}</button><button className="share-plan-button" onClick={sharePlan}><Share2 size={18} /> Share date plan</button>{message && <div className="share-feedback">{message}</div>}<small className="saved-count">{session ? `${savedPlans.filter((item) => item.ownerId === session.id).length} saved plan(s) on this account` : 'Sign in to save plans'}</small></aside>
         </section>
       )}
     </main>
   );
 }
 
-export default PlannerFinal;
+export default DatePlanner;
