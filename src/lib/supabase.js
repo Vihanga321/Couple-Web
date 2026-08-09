@@ -22,7 +22,7 @@ export async function signUpWithSupabase({ name, email, password, role = 'custom
     email,
     password,
     options: {
-      data: { name, role },
+      data: { name, role: role === 'business' ? 'business' : 'customer' },
     },
   });
 }
@@ -30,6 +30,24 @@ export async function signUpWithSupabase({ name, email, password, role = 'custom
 export async function signInWithSupabase({ email, password }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   return supabase.auth.signInWithPassword({ email, password });
+}
+
+export async function getSupabaseProfile(authUser) {
+  if (!supabase || !authUser) return null;
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('name, role, status')
+    .eq('id', authUser.id)
+    .maybeSingle();
+
+  return {
+    id: authUser.id,
+    name: data?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Twonara user',
+    email: authUser.email,
+    role: data?.role || authUser.user_metadata?.role || 'customer',
+    status: data?.status || 'active',
+  };
 }
 
 export async function signOutSupabase() {
