@@ -34,12 +34,18 @@ Twonara is a simple, mobile-first website for couples to discover places and bui
 - Add / remove places from Date Plan
 - Mobile-friendly detail layout
 
-### Phase 3 — Date Planner
-- Create plan
-- Add and reorder stops
-- Date / time
-- Estimated budget
-- Share plan
+### Phase 3 — Date Planner ✅
+- Create and name a date plan
+- Choose the date
+- Add places directly from Explore or Place Details
+- Reorder stops
+- Choose a time for every stop
+- Remove stops
+- Estimated budget summary
+- Approximate combined distance
+- Add more stops from the planner
+- Share the plan with Web Share / clipboard fallback
+- Responsive mobile date-planner layout
 
 ### Phase 4 — Customer accounts
 - Sign up / login
