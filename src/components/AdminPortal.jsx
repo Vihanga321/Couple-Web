@@ -29,8 +29,21 @@ function AdminPortal({ session, listings, setListings, users, setUsers, onBack, 
     }
   };
 
-  const toggleUser = (id) => {
-    setUsers((current) => current.map((item) => item.id === id ? { ...item, status: item.status === 'suspended' ? 'active' : 'suspended' } : item));
+  const toggleUser = async (id) => {
+    const target = users.find((item) => item.id === id);
+    if (!target || target.role === 'admin') return;
+    const nextStatus = target.status === 'suspended' ? 'active' : 'suspended';
+
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { error } = await supabase.from('profiles').update({ status: nextStatus }).eq('id', id);
+        if (error) throw error;
+      }
+      setUsers((current) => current.map((item) => item.id === id ? { ...item, status: nextStatus } : item));
+      setMessage(nextStatus === 'suspended' ? 'User suspended.' : 'User reactivated.');
+    } catch (error) {
+      setMessage(error.message || 'Could not update this user.');
+    }
   };
 
   return (
