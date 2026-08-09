@@ -1,0 +1,5 @@
+[functions.payhere-notify]
+verify_jwt = false
+
+[functions.payhere-create]
+verify_jwt = true
