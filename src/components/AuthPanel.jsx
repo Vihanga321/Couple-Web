@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Building2, Heart, LogIn, ShieldCheck, UserRound } from 'lucide-react';
-import { isSupabaseConfigured, signInWithSupabase, signUpWithSupabase } from '../lib/supabase';
+import { getSupabaseProfile, isSupabaseConfigured, signInWithSupabase, signOutSupabase, signUpWithSupabase } from '../lib/supabase';
 
 const demoAccounts = {
   customer: { id: 'user-customer', name: 'Demo Customer', email: 'customer@twonara.demo', role: 'customer', status: 'active' },
@@ -30,14 +30,15 @@ function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBac
 
         if (result.error) throw result.error;
         const authUser = result.data.user;
+
         if (authUser) {
-          onSignedIn({
-            id: authUser.id,
-            name: authUser.user_metadata?.name || form.name || authUser.email?.split('@')[0] || 'Twonara user',
-            email: authUser.email,
-            role: authUser.user_metadata?.role || role,
-            status: 'active',
-          });
+          const account = await getSupabaseProfile(authUser);
+          if (!account) throw new Error('Could not load your Twonara profile.');
+          if (account.status === 'suspended') {
+            await signOutSupabase();
+            throw new Error('This account is suspended.');
+          }
+          onSignedIn(account);
         } else {
           setMessage('Check your email to confirm your Twonara account.');
         }
@@ -96,6 +97,9 @@ function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBac
               </div>
             )}
 
+            {intentRole === 'admin' && isSupabaseConfigured && mode === 'login' && (
+              <div className="form-message">Admin access is only given to accounts promoted in the Twonara database.</div>
+            )}
             {message && <div className="form-message">{message}</div>}
             <button className="primary-wide-button" type="submit" disabled={busy}><LogIn size={18} /> {busy ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}</button>
           </form>
