@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -32,6 +32,7 @@ import { ProfileView, SavedView } from './components/CustomerViews';
 import { categories, seedBusinessListings, seedPlaces, seedUsers } from './data/seed';
 import { isSupabaseConfigured, signOutSupabase, supabase } from './lib/supabase';
 import { usePersistentState } from './lib/storage';
+import { persistFavorite, useSupabaseSync } from './hooks/useSupabaseSync';
 import './phase2.css';
 import './phase3.css';
 import './final.css';
@@ -54,6 +55,8 @@ function Logo({ onClick }) {
 }
 
 function businessListingToPlace(listing) {
+  const featuredActive = listing.adPlan === 'featured' && (!listing.featuredUntil || new Date(listing.featuredUntil) > new Date());
+
   return {
     id: listing.id,
     name: listing.name,
@@ -71,10 +74,10 @@ function businessListingToPlace(listing) {
     time: listing.hours || 'Contact venue for hours',
     openNow: true,
     phone: listing.phone,
-    tags: [listing.adPlan === 'featured' ? 'Featured' : 'Twonara listing', 'Business listing'],
+    tags: [featuredActive ? 'Featured' : 'Twonara listing', 'Business listing'],
     features: ['Admin approved listing', 'Contact the venue for current availability', 'Check venue rules before visiting'],
     image: listing.image || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85',
-    promoted: listing.adPlan === 'featured',
+    promoted: featuredActive,
     businessListing: true,
   };
 }
@@ -193,26 +196,36 @@ function ReviewBox({ place, session, reviews, setReviews, onNeedLogin }) {
       return;
     }
 
-    const review = {
-      id: `review-${Date.now()}`,
-      placeId: place.id,
-      userId: session.id,
-      userName: session.name,
-      rating,
-      comment: comment.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
     try {
+      let reviewId = `review-${Date.now()}`;
+      let createdAt = new Date().toISOString();
+
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('reviews').insert({
-          place_id: place.id,
-          user_id: session.id,
-          rating,
-          comment: comment.trim(),
-        });
+        const { data, error } = await supabase
+          .from('reviews')
+          .upsert({
+            place_ref: place.id,
+            user_id: session.id,
+            rating,
+            comment: comment.trim(),
+          }, { onConflict: 'place_ref,user_id' })
+          .select('id, created_at')
+          .single();
         if (error) throw error;
+        reviewId = data.id;
+        createdAt = data.created_at;
       }
+
+      const review = {
+        id: reviewId,
+        placeId: place.id,
+        userId: session.id,
+        userName: session.name,
+        rating,
+        comment: comment.trim(),
+        createdAt,
+      };
+
       setReviews((current) => [review, ...current.filter((item) => !(item.placeId === place.id && item.userId === session.id))]);
       setComment('');
       setMessage('Review saved.');
@@ -310,36 +323,15 @@ function AppFinal() {
   const [sortBy, setSortBy] = useState('recommended');
   const [authIntent, setAuthIntent] = useState('customer');
 
-  useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return undefined;
-
-    supabase.auth.getSession().then(({ data }) => {
-      const authUser = data.session?.user;
-      if (authUser) {
-        setSession({
-          id: authUser.id,
-          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Twonara user',
-          email: authUser.email,
-          role: authUser.user_metadata?.role || 'customer',
-          status: 'active',
-        });
-      }
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!nextSession?.user) return;
-      const authUser = nextSession.user;
-      setSession({
-        id: authUser.id,
-        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Twonara user',
-        email: authUser.email,
-        role: authUser.user_metadata?.role || 'customer',
-        status: 'active',
-      });
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, [setSession]);
+  useSupabaseSync({
+    session,
+    setSession,
+    setListings,
+    setReviews,
+    setSavedItems,
+    setSavedPlans,
+    setUsers,
+  });
 
   const approvedBusinessPlaces = useMemo(
     () => listings.filter((item) => item.status === 'approved').map(businessListingToPlace),
@@ -382,6 +374,7 @@ function AppFinal() {
     if (nextView !== 'details') setSelectedPlaceId(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
   const goHome = () => go('home');
   const openExplore = (category = 'All') => { setActiveCategory(category); go('explore'); };
   const openPlan = () => go('plan');
@@ -401,7 +394,17 @@ function AppFinal() {
   };
 
   const togglePlan = (id) => setPlanItems((current) => current.includes(id) ? current.filter((itemId) => itemId !== id) : [...current, id]);
-  const toggleSaved = (id) => setSavedItems((current) => current.includes(id) ? current.filter((itemId) => itemId !== id) : [...current, id]);
+
+  const toggleSaved = async (id) => {
+    const currentlySaved = savedItems.includes(id);
+    setSavedItems((current) => currentlySaved ? current.filter((itemId) => itemId !== id) : [...current, id]);
+
+    try {
+      await persistFavorite({ session, placeId: id, currentlySaved });
+    } catch {
+      setSavedItems((current) => currentlySaved ? [...current.filter((itemId) => itemId !== id), id] : current.filter((itemId) => itemId !== id));
+    }
+  };
 
   const chooseLocation = (event) => {
     event.preventDefault();
@@ -423,6 +426,8 @@ function AppFinal() {
   const handleSignOut = async () => {
     if (isSupabaseConfigured) await signOutSupabase();
     setSession(null);
+    setSavedItems([]);
+    setSavedPlans([]);
     goHome();
   };
 
