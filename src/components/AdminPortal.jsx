@@ -17,6 +17,14 @@ function AdminPortal({ session, listings, setListings, users, setUsers, onBack, 
   })), [approved]);
 
   const changeListingStatus = async (id, status) => {
+    const target = listings.find((item) => item.id === id);
+    if (!target) return;
+
+    if (isSupabaseConfigured && status === 'approved' && target.adPlan !== 'free' && target.paymentStatus !== 'paid') {
+      setMessage('This paid-plan listing cannot be published until PayHere confirms payment.');
+      return;
+    }
+
     try {
       if (isSupabaseConfigured && supabase) {
         const { error } = await supabase.from('listings').update({ status }).eq('id', id);
@@ -83,7 +91,7 @@ function AdminPortal({ session, listings, setListings, users, setUsers, onBack, 
                   <div className="admin-listing-copy">
                     <div><strong>{listing.name}</strong><span className={`status-badge ${listing.status}`}>{listing.status}</span></div>
                     <p>{listing.description}</p>
-                    <small>{listing.category} · {listing.location} · {adPlans.find((plan) => plan.id === listing.adPlan)?.name || 'Free'} plan</small>
+                    <small>{listing.category} · {listing.location} · {adPlans.find((plan) => plan.id === listing.adPlan)?.name || 'Free'} plan · payment: {listing.paymentStatus || 'not_required'}</small>
                   </div>
                   <div className="admin-actions">
                     <button className="preview-action" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(listing.address)}`, '_blank', 'noopener,noreferrer')}><Eye size={16} /> Map</button>
