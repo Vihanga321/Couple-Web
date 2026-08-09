@@ -1,0 +1,7 @@
+[functions.payhere-notify]
+verify_jwt = false
+
+# Authentication is verified inside the function with auth.getUser(token).
+# Keeping the platform JWT check off avoids key-format mismatch issues while still requiring a valid user token in code.
+[functions.payhere-create]
+verify_jwt = false

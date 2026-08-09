@@ -1,0 +1,109 @@
+export const categories = [
+  { name: 'Do', helper: 'Fun things together' },
+  { name: 'Eat', helper: 'A table for two' },
+  { name: 'Privacy', helper: 'Quiet couple-friendly spots' },
+  { name: 'Relax', helper: 'Slow down together' },
+  { name: 'Stay', helper: 'A little getaway' },
+];
+
+export const seedPlaces = [
+  {
+    id: 'place-1',
+    name: 'Harbour Table',
+    category: 'Eat',
+    note: 'Dinner with a calm evening view',
+    description: 'A relaxed waterfront restaurant made for slow dinners, easy conversation and sunset views.',
+    location: 'Negombo',
+    address: 'Lewis Place, Negombo',
+    distanceKm: 1.8,
+    rating: 4.8,
+    reviews: 184,
+    price: 'Rs. 2,500 – 5,000',
+    priceLevel: 2,
+    estimatedCost: 3750,
+    time: 'Open until 11:00 PM',
+    openNow: true,
+    phone: '+94 31 000 0001',
+    tags: ['Dinner', 'Waterfront', 'Couple-friendly'],
+    features: ['Outdoor seating', 'Reservations', 'Parking', 'Vegetarian options'],
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-2', name: 'Sunset Paddle', category: 'Do', note: 'A relaxed evening activity for two',
+    description: 'A gentle paddle experience around the lagoon during the cooler evening hours.',
+    location: 'Negombo', address: 'Negombo Lagoon, Negombo', distanceKm: 3.1, rating: 4.7, reviews: 96,
+    price: 'From Rs. 3,000', priceLevel: 2, estimatedCost: 3000, time: 'Best before sunset', openNow: true,
+    phone: '+94 31 000 0002', tags: ['Outdoor', 'Sunset', 'Activity'], features: ['Guide included', 'Life jackets', 'Pre-booking', 'Couple sessions'],
+    image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-3', name: 'Cinema Nook', category: 'Privacy', note: 'A small private screening space',
+    description: 'A bookable private screening room with a comfortable setup for two and clear venue rules.',
+    location: 'Negombo', address: 'Colombo Road, Negombo', distanceKm: 2.4, rating: 4.6, reviews: 132,
+    price: 'From Rs. 2,000', priceLevel: 1, estimatedCost: 2000, time: 'Slots available today', openNow: true,
+    phone: '+94 31 000 0003', tags: ['Private cinema', 'Bookable', 'Indoor'], features: ['Private screening room', 'Air conditioned', 'Snacks available', 'Advance booking'],
+    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-4', name: 'Lagoon Calm', category: 'Relax', note: 'Quiet views and an easy evening',
+    description: 'A peaceful lagoon-side spot for an unhurried afternoon or early evening stop.',
+    location: 'Negombo', address: 'Lagoon View Road, Negombo', distanceKm: 4.0, rating: 4.9, reviews: 211,
+    price: 'From Rs. 1,500', priceLevel: 1, estimatedCost: 1500, time: 'Open until 9:30 PM', openNow: true,
+    phone: '+94 31 000 0004', tags: ['Quiet', 'View', 'Relax'], features: ['Outdoor seating', 'Drinks', 'Parking', 'Sunset view'],
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-5', name: 'Palm Stay', category: 'Stay', note: 'A cozy overnight escape near the coast',
+    description: 'A small coastal stay with comfortable rooms and easy beach access. Accommodation follows the property’s age and ID rules.',
+    location: 'Negombo', address: 'Porutota Road, Negombo', distanceKm: 5.2, rating: 4.7, reviews: 149,
+    price: 'From Rs. 12,000', priceLevel: 3, estimatedCost: 12000, time: 'Check-in from 2:00 PM', openNow: true,
+    phone: '+94 31 000 0005', tags: ['Stay', 'Pool', 'Beach nearby'], features: ['Private room', 'Pool', 'Breakfast', 'Parking'],
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-6', name: 'Little Italy', category: 'Eat', note: 'Pizza, pasta and an easy date-night mood',
+    description: 'A casual restaurant with warm lighting, shareable dishes and a relaxed atmosphere.',
+    location: 'Negombo', address: 'Beach Road, Negombo', distanceKm: 2.7, rating: 4.5, reviews: 238,
+    price: 'Rs. 2,000 – 4,500', priceLevel: 2, estimatedCost: 3250, time: 'Open until 10:30 PM', openNow: true,
+    phone: '+94 31 000 0006', tags: ['Italian', 'Dinner', 'Casual'], features: ['Indoor seating', 'Takeaway', 'Parking', 'Desserts'],
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-7', name: 'Clay Date Studio', category: 'Do', note: 'Make something together and take it home',
+    description: 'A beginner-friendly creative session where two people can paint or shape a small clay piece together.',
+    location: 'Negombo', address: 'Main Street, Negombo', distanceKm: 3.8, rating: 4.8, reviews: 74,
+    price: 'From Rs. 3,500', priceLevel: 2, estimatedCost: 3500, time: 'Sessions until 8:00 PM', openNow: false,
+    phone: '+94 31 000 0007', tags: ['Creative', 'Indoor', 'Workshop'], features: ['Materials included', 'Beginner friendly', 'Take-home piece', 'Pre-booking'],
+    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1200&q=85',
+  },
+  {
+    id: 'place-8', name: 'Cloud Spa', category: 'Relax', note: 'A calm wellness stop for your date plan',
+    description: 'A modern wellness space offering short relaxation packages in a quiet setting.',
+    location: 'Negombo', address: 'St. Joseph Street, Negombo', distanceKm: 4.6, rating: 4.6, reviews: 103,
+    price: 'From Rs. 4,000', priceLevel: 2, estimatedCost: 4000, time: 'Open until 9:00 PM', openNow: true,
+    phone: '+94 31 000 0008', tags: ['Wellness', 'Indoor', 'Relax'], features: ['Appointments', 'Air conditioned', 'Parking', 'Couple packages'],
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1200&q=85',
+  },
+];
+
+export const adPlans = [
+  { id: 'free', name: 'Free', price: 0, period: 'No monthly fee', features: ['Standard listing', 'Basic details', 'Customer contact button'] },
+  { id: 'premium', name: 'Premium', price: 2500, period: '30 days', features: ['More photos', 'Offers', 'Business analytics', 'Priority in category'] },
+  { id: 'featured', name: 'Featured', price: 5000, period: '30 days', features: ['Featured badge', 'Higher placement', 'Homepage eligibility', 'Business analytics'] },
+];
+
+export const seedUsers = [
+  { id: 'user-customer', name: 'Demo Customer', email: 'customer@twonara.demo', role: 'customer', status: 'active' },
+  { id: 'user-business', name: 'Demo Business', email: 'business@twonara.demo', role: 'business', status: 'active' },
+  { id: 'user-admin', name: 'Twonara Admin', email: 'admin@twonara.demo', role: 'admin', status: 'active' },
+];
+
+export const seedBusinessListings = [
+  {
+    id: 'listing-demo-1', ownerId: 'user-business', businessName: 'Moonlight Café', name: 'Moonlight Café', category: 'Eat',
+    location: 'Negombo', address: 'Sea Street, Negombo', description: 'A small café with evening seating and a simple menu for two.',
+    price: 'Rs. 1,500 – 3,500', estimatedCost: 2500, phone: '+94 77 000 1111', hours: '4:00 PM – 11:00 PM',
+    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=85', adPlan: 'premium',
+    status: 'pending', paymentStatus: 'demo', createdAt: '2026-08-10T03:25:00+05:30',
+  },
+];
