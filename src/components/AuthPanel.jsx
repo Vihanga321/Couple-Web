@@ -29,19 +29,25 @@ function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBac
           : await signInWithSupabase(form);
 
         if (result.error) throw result.error;
-        const authUser = result.data.user;
 
-        if (authUser) {
-          const account = await getSupabaseProfile(authUser);
-          if (!account) throw new Error('Could not load your Twonara profile.');
-          if (account.status === 'suspended') {
-            await signOutSupabase();
-            throw new Error('This account is suspended.');
-          }
-          onSignedIn(account);
-        } else {
-          setMessage('Check your email to confirm your Twonara account.');
+        if (mode === 'signup' && !result.data.session) {
+          setMessage('Account created. Check your email to confirm it, then log in.');
+          return;
         }
+
+        const authUser = result.data.user;
+        if (!authUser) {
+          setMessage('Check your email to confirm your Twonara account.');
+          return;
+        }
+
+        const account = await getSupabaseProfile(authUser);
+        if (!account) throw new Error('Could not load your Twonara profile.');
+        if (account.status === 'suspended') {
+          await signOutSupabase();
+          throw new Error('This account is suspended.');
+        }
+        onSignedIn(account);
       } else if (mode === 'signup') {
         if (!form.name.trim() || !form.email.trim()) throw new Error('Enter your name and email.');
         const account = {
