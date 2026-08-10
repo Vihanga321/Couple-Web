@@ -52,8 +52,9 @@ export async function signInWithGoogle({ intentRole = 'customer' } = {}) {
 }
 
 export function consumeOAuthIntent() {
-  if (typeof window === 'undefined') return 'customer';
-  const value = window.sessionStorage.getItem(OAUTH_INTENT_KEY) || 'customer';
+  if (typeof window === 'undefined') return null;
+  const value = window.sessionStorage.getItem(OAUTH_INTENT_KEY);
+  if (!value) return null;
   window.sessionStorage.removeItem(OAUTH_INTENT_KEY);
   return value;
 }
