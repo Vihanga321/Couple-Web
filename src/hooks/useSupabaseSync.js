@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
-import { getSupabaseProfile, isSupabaseConfigured, supabase } from '../lib/supabase';
+import {
+  consumeOAuthIntent,
+  getSupabaseProfile,
+  isSupabaseConfigured,
+  setMyAccountRole,
+  supabase,
+} from '../lib/supabase';
 
 function mapListing(row) {
   return {
@@ -73,7 +79,19 @@ export function useSupabaseSync({
         return;
       }
 
-      const profile = await getSupabaseProfile(authUser);
+      let profile = await getSupabaseProfile(authUser);
+      if (!active || !profile) return;
+
+      const oauthIntent = consumeOAuthIntent();
+      if (oauthIntent === 'business' && profile.role === 'customer') {
+        try {
+          await setMyAccountRole('business');
+          profile = await getSupabaseProfile(authUser);
+        } catch (error) {
+          console.error('Could not switch Google account to business role:', error);
+        }
+      }
+
       if (!active || !profile) return;
 
       if (profile.status === 'suspended') {
@@ -144,7 +162,7 @@ export function useSupabaseSync({
 
       if (session.role === 'admin') {
         const { data, error } = await supabase.from('profiles').select('id, name, role, status, created_at').order('created_at', { ascending: false });
-        if (active && !error) setUsers((data || []).map((profile) => ({ ...profile, email: 'Private' })));
+        if (active && !error) setUsers((data || []).map((profileRow) => ({ ...profileRow, email: 'Private' })));
       }
     };
 
