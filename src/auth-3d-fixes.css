@@ -1,0 +1,51 @@
+.auth-heart-object {
+  animation-name: authHeartDrift;
+}
+
+.auth-3d-page .google-auth-button-3d {
+  width: 100%;
+  max-width: 480px;
+  min-height: 58px;
+  margin: 0 auto;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, #fffafa);
+}
+
+.auth-3d-page .auth-divider-3d {
+  width: 100%;
+  max-width: 480px;
+  margin: 9px auto 4px;
+  gap: 0;
+}
+
+.auth-3d-page .auth-role-choice-3d {
+  margin-top: 0;
+}
+
+@keyframes authHeartDrift {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@media (max-width: 680px) {
+  .auth-3d-page .auth-card-3d {
+    padding: 28px 18px 24px;
+    border-radius: 25px;
+  }
+
+  .auth-3d-page .auth-intro-3d h1 {
+    font-size: 32px;
+  }
+
+  .auth-3d-page .google-auth-button-3d {
+    min-height: 55px;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-center-orb { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-heart-object { animation: none; }
+}

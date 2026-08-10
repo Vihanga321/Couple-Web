@@ -4,6 +4,7 @@ import App from './AppFinal';
 import './styles.css';
 import './mobile-fixes.css';
 import './auth-google.css';
+import './auth-3d-fixes.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
