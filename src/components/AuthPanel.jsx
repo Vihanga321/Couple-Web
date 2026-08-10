@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { ArrowLeft, Building2, Heart, LogIn, ShieldCheck, UserRound } from 'lucide-react';
-import { getSupabaseProfile, isSupabaseConfigured, signInWithSupabase, signOutSupabase, signUpWithSupabase } from '../lib/supabase';
+import {
+  getSupabaseProfile,
+  isSupabaseConfigured,
+  signInWithGoogle,
+  signInWithSupabase,
+  signOutSupabase,
+  signUpWithSupabase,
+} from '../lib/supabase';
 
 const demoAccounts = {
   customer: { id: 'user-customer', name: 'Demo Customer', email: 'customer@twonara.demo', role: 'customer', status: 'active' },
@@ -8,14 +15,45 @@ const demoAccounts = {
   admin: { id: 'user-admin', name: 'Twonara Admin', email: 'admin@twonara.demo', role: 'admin', status: 'active' },
 };
 
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+      <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.87h5.38a4.6 4.6 0 0 1-2 3.02v2.52h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z" />
+      <path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.41l-3.24-2.52c-.9.6-2.05.96-3.38.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.6A10 10 0 0 0 12 22Z" />
+      <path fill="#FBBC05" d="M6.39 13.9A6.02 6.02 0 0 1 6.08 12c0-.66.11-1.3.31-1.9V7.5H3.04A10 10 0 0 0 2 12c0 1.61.38 3.13 1.04 4.5l3.35-2.6Z" />
+      <path fill="#EA4335" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.88A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.96 5.5l3.35 2.6C7.18 7.73 9.39 5.97 12 5.97Z" />
+    </svg>
+  );
+}
+
 function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBack }) {
   const [mode, setMode] = useState('login');
   const [role, setRole] = useState(intentRole === 'admin' ? 'customer' : intentRole);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+
+  const googleIntentRole = intentRole === 'admin'
+    ? 'admin'
+    : (mode === 'signup' && role === 'business') || intentRole === 'business'
+      ? 'business'
+      : 'customer';
+
+  const continueWithGoogle = async () => {
+    setMessage('');
+    setGoogleBusy(true);
+
+    try {
+      const { error } = await signInWithGoogle({ intentRole: googleIntentRole });
+      if (error) throw error;
+    } catch (error) {
+      setMessage(error.message || 'Could not start Google sign-in.');
+      setGoogleBusy(false);
+    }
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -89,6 +127,23 @@ function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBac
             <button className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>Sign up</button>
           </div>
 
+          {mode === 'signup' && (
+            <div className="role-choice auth-role-choice">
+              <button type="button" className={role === 'customer' ? 'active' : ''} onClick={() => setRole('customer')}><UserRound size={17} /> Customer</button>
+              <button type="button" className={role === 'business' ? 'active' : ''} onClick={() => setRole('business')}><Building2 size={17} /> Business</button>
+            </div>
+          )}
+
+          {isSupabaseConfigured && (
+            <>
+              <button className="google-auth-button" type="button" onClick={continueWithGoogle} disabled={googleBusy || busy}>
+                <GoogleMark />
+                <span>{googleBusy ? 'Opening Google…' : 'Continue with Google'}</span>
+              </button>
+              <div className="auth-divider"><span>or continue with email</span></div>
+            </>
+          )}
+
           <form className="auth-form" onSubmit={submit}>
             {mode === 'signup' && (
               <label><span>Your name</span><input value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="Your name" /></label>
@@ -96,18 +151,14 @@ function AuthPanel({ intentRole = 'customer', users, setUsers, onSignedIn, onBac
             <label><span>Email</span><input type="email" value={form.email} onChange={(event) => update('email', event.target.value)} placeholder="you@example.com" required /></label>
             <label><span>Password</span><input type="password" value={form.password} onChange={(event) => update('password', event.target.value)} placeholder={isSupabaseConfigured ? 'Your password' : 'Demo mode: any password'} required /></label>
 
-            {mode === 'signup' && (
-              <div className="role-choice">
-                <button type="button" className={role === 'customer' ? 'active' : ''} onClick={() => setRole('customer')}><UserRound size={17} /> Customer</button>
-                <button type="button" className={role === 'business' ? 'active' : ''} onClick={() => setRole('business')}><Building2 size={17} /> Business</button>
-              </div>
-            )}
-
             {intentRole === 'admin' && isSupabaseConfigured && mode === 'login' && (
-              <div className="form-message">Admin access is only given to accounts promoted in the Twonara database.</div>
+              <div className="form-message">Google or email can sign in here, but admin access only works for accounts already promoted to admin in the Twonara database.</div>
+            )}
+            {intentRole === 'business' && isSupabaseConfigured && (
+              <div className="auth-provider-note">Continue with Google to create or open your business account, then post your place.</div>
             )}
             {message && <div className="form-message">{message}</div>}
-            <button className="primary-wide-button" type="submit" disabled={busy}><LogIn size={18} /> {busy ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}</button>
+            <button className="primary-wide-button" type="submit" disabled={busy || googleBusy}><LogIn size={18} /> {busy ? 'Please wait…' : mode === 'login' ? 'Log in with email' : 'Create account with email'}</button>
           </form>
 
           {!isSupabaseConfigured && (
