@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './AppFinal';
 import './styles.css';
 import './mobile-fixes.css';
+import './auth-google.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
