@@ -1,0 +1,16 @@
+.auth-heart-object {
+  animation-name: authHeartDrift;
+}
+
+@keyframes authHeartDrift {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@media (max-width: 380px) {
+  .auth-center-orb { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-heart-object { animation: none; }
+}
