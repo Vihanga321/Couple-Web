@@ -101,6 +101,12 @@ export function useSupabaseSync({
       }
 
       setSession(profile);
+
+      if (oauthIntent && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('twonara:oauth-complete', {
+          detail: { intent: oauthIntent, role: profile.role },
+        }));
+      }
     };
 
     supabase.auth.getSession().then(({ data }) => applyAuthUser(data.session?.user || null));
