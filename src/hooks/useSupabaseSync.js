@@ -39,7 +39,9 @@ function mapReview(row) {
     userName: 'Twonara user',
     rating: Number(row.rating),
     comment: row.comment,
+    trustLevel: row.trust_level || 'community',
     createdAt: row.created_at,
+    updatedAt: row.updated_at || row.created_at,
   };
 }
 
