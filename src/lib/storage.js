@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
+import { normalizeDistrict } from '../data/sriLankaDistricts';
 
 export function readStore(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    const value = raw ? JSON.parse(raw) : fallback;
+    return key === 'twonara:location' ? normalizeDistrict(value) : value;
   } catch {
-    return fallback;
+    return key === 'twonara:location' ? normalizeDistrict(fallback) : fallback;
   }
 }
 
 export function writeStore(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    const nextValue = key === 'twonara:location' ? normalizeDistrict(value) : value;
+    localStorage.setItem(key, JSON.stringify(nextValue));
   } catch {
     // Ignore storage failures (private mode / blocked storage).
   }
@@ -26,7 +29,9 @@ export function usePersistentState(key, initialValue) {
 
   useEffect(() => {
     const syncValue = (event) => {
-      if (event.detail?.key === key) setValue(event.detail.value);
+      if (event.detail?.key === key) {
+        setValue(key === 'twonara:location' ? normalizeDistrict(event.detail.value) : event.detail.value);
+      }
     };
     window.addEventListener('twonara:persistent-state', syncValue);
     return () => window.removeEventListener('twonara:persistent-state', syncValue);
