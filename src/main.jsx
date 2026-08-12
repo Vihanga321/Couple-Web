@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './AppCommunity';
+import App from './AppMarketplace';
 import './styles.css';
 import './mobile-fixes.css';
 import './auth-google.css';
