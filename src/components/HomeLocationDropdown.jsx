@@ -1,30 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, MapPin } from 'lucide-react';
+import { DISTRICT_OPTIONS, normalizeDistrict } from '../data/sriLankaDistricts';
 import { readStore } from '../lib/storage';
 import '../location-dropdown.css';
-
-const MAIN_LOCATIONS = [
-  'All Sri Lanka',
-  'Colombo',
-  'Negombo',
-  'Gampaha',
-  'Kalutara',
-  'Kandy',
-  'Nuwara Eliya',
-  'Galle',
-  'Matara',
-  'Hambantota',
-  'Kurunegala',
-  'Anuradhapura',
-  'Polonnaruwa',
-  'Jaffna',
-  'Trincomalee',
-  'Batticaloa',
-  'Badulla',
-  'Ella',
-  'Ratnapura',
-];
 
 function findLocationTarget() {
   const homeSearch = document.querySelector('.market-home .market-search-zone');
@@ -39,9 +18,14 @@ function findLocationTarget() {
   return null;
 }
 
+function coerceDistrict(value) {
+  const normalized = normalizeDistrict(value);
+  return DISTRICT_OPTIONS.includes(normalized) ? normalized : 'All Sri Lanka';
+}
+
 export default function HomeLocationDropdown() {
   const [target, setTarget] = useState(null);
-  const [location, setLocation] = useState(() => readStore('twonara:location', 'Negombo'));
+  const [location, setLocation] = useState(() => coerceDistrict(readStore('twonara:location', 'Gampaha')));
 
   useEffect(() => {
     const refreshTarget = () => {
@@ -59,29 +43,34 @@ export default function HomeLocationDropdown() {
   }, []);
 
   useEffect(() => {
+    const stored = readStore('twonara:location', 'Gampaha');
+    const district = coerceDistrict(stored);
+    if (stored !== district) {
+      window.dispatchEvent(new CustomEvent('twonara:persistent-state', {
+        detail: { key: 'twonara:location', value: district },
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
     const syncLocation = (event) => {
-      if (event.detail?.key === 'twonara:location') setLocation(event.detail.value);
+      if (event.detail?.key === 'twonara:location') setLocation(coerceDistrict(event.detail.value));
     };
     window.addEventListener('twonara:persistent-state', syncLocation);
     return () => window.removeEventListener('twonara:persistent-state', syncLocation);
   }, []);
 
-  const options = useMemo(() => {
-    if (!location || MAIN_LOCATIONS.includes(location)) return MAIN_LOCATIONS;
-    return [location, ...MAIN_LOCATIONS];
-  }, [location]);
-
   const changeLocation = (event) => {
-    const nextLocation = event.target.value;
-    setLocation(nextLocation);
+    const nextDistrict = event.target.value;
+    setLocation(nextDistrict);
     window.dispatchEvent(new CustomEvent('twonara:persistent-state', {
-      detail: { key: 'twonara:location', value: nextLocation },
+      detail: { key: 'twonara:location', value: nextDistrict },
     }));
   };
 
   if (!target?.element) return null;
 
-  const label = target.mode === 'portal' ? 'Customer location' : 'Location';
+  const label = target.mode === 'portal' ? 'Customer district' : 'District';
 
   return createPortal(
     <div className={`home-location-dropdown location-mode-${target.mode}`}>
@@ -90,8 +79,8 @@ export default function HomeLocationDropdown() {
         <span>{label}</span>
       </div>
       <div className="home-location-select-wrap">
-        <select value={location} onChange={changeLocation} aria-label="Choose a main location in Sri Lanka">
-          {options.map((item) => <option value={item} key={item}>{item}</option>)}
+        <select value={location} onChange={changeLocation} aria-label="Choose a district in Sri Lanka">
+          {DISTRICT_OPTIONS.map((district) => <option value={district} key={district}>{district}</option>)}
         </select>
         <ChevronDown size={17} aria-hidden="true" />
       </div>
