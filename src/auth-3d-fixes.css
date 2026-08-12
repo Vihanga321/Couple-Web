@@ -22,6 +22,150 @@
   margin-top: 0;
 }
 
+/* Explicitly reset browser button styles. The previous login/signup toggle could
+   inherit native borders when the older auth base styles were not present. */
+.auth-3d-page .auth-mode-row-3d {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 5px;
+  border-radius: 15px;
+}
+
+.auth-3d-page .auth-mode-row-3d button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 11px;
+  margin: 0;
+  padding: 8px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  color: #725d65;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.auth-3d-page .auth-mode-row-3d button.active {
+  color: #3f2c32;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 8px 20px rgba(76, 42, 52, .08), inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.auth-3d-page .auth-email-button {
+  width: 100%;
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
+  padding: 0 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(135deg, #d94f71, #b93f5e);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(185, 63, 94, .2), inset 0 1px 0 rgba(255,255,255,.22);
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.auth-3d-page .auth-email-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 17px 32px rgba(185, 63, 94, .25), inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.auth-3d-page .auth-email-button:disabled,
+.auth-3d-page .google-auth-button-3d:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-config-card {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 13px;
+  border-radius: 14px;
+}
+
+.auth-config-warning {
+  border: 1px solid #efd9a9;
+  background: linear-gradient(145deg, #fffaf0, #fff5e5);
+  color: #795a21;
+}
+
+.auth-config-warning > svg {
+  margin-top: 1px;
+  color: #b88120;
+}
+
+.auth-config-card > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.auth-config-card strong {
+  color: #5c431b;
+  font-size: 12px;
+}
+
+.auth-config-card span,
+.auth-config-card small {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.auth-config-card small {
+  color: #8a6d36;
+}
+
+.auth-config-checks {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px !important;
+  margin-top: 4px;
+}
+
+.auth-config-checks span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.auth-config-checks .ok {
+  background: #eaf8f1;
+  color: #187653;
+}
+
+.auth-config-checks .missing {
+  background: #fff0e7;
+  color: #9b5922;
+}
+
+.auth-login-message {
+  padding: 10px 12px;
+  border: 1px solid #efc8ce;
+  border-radius: 11px;
+  background: #fff1f3;
+  color: #9b3d4b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 @keyframes authHeartDrift {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -8px; }
@@ -40,10 +184,19 @@
   .auth-3d-page .google-auth-button-3d {
     min-height: 55px;
   }
+
+  .auth-3d-page .auth-mode-row-3d {
+    grid-template-columns: 1fr 1.45fr;
+  }
+
+  .auth-config-card {
+    padding: 11px;
+  }
 }
 
 @media (max-width: 380px) {
   .auth-center-orb { animation: none; }
+  .auth-3d-page .auth-mode-row-3d button { font-size: 12px; padding-inline: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

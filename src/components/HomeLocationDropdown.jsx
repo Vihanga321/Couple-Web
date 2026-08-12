@@ -6,14 +6,17 @@ import { readStore } from '../lib/storage';
 import '../location-dropdown.css';
 
 function findLocationTarget() {
+  // District is a customer discovery filter. Keep authentication and management
+  // screens focused on account/shop tasks instead of showing a customer filter.
+  if (document.querySelector('.auth-3d-page, .shop-portal-page, .shop-dashboard-page, .shop-admin-page')) {
+    return null;
+  }
+
   const homeSearch = document.querySelector('.market-home .market-search-zone');
   if (homeSearch) return { element: homeSearch, mode: 'home' };
 
   const customerHeader = document.querySelector('.market-topbar');
   if (customerHeader) return { element: customerHeader, mode: 'global' };
-
-  const portalHeader = document.querySelector('.portal-page .portal-head');
-  if (portalHeader) return { element: portalHeader, mode: 'portal' };
 
   return null;
 }
@@ -70,13 +73,11 @@ export default function HomeLocationDropdown() {
 
   if (!target?.element) return null;
 
-  const label = target.mode === 'portal' ? 'Customer district' : 'District';
-
   return createPortal(
     <div className={`home-location-dropdown location-mode-${target.mode}`}>
       <div className="home-location-dropdown-label">
         <MapPin size={15} />
-        <span>{label}</span>
+        <span>District</span>
       </div>
       <div className="home-location-select-wrap">
         <select value={location} onChange={changeLocation} aria-label="Choose a district in Sri Lanka">
