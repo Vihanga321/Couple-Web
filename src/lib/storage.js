@@ -24,6 +24,14 @@ export function usePersistentState(key, initialValue) {
     writeStore(key, value);
   }, [key, value]);
 
+  useEffect(() => {
+    const syncValue = (event) => {
+      if (event.detail?.key === key) setValue(event.detail.value);
+    };
+    window.addEventListener('twonara:persistent-state', syncValue);
+    return () => window.removeEventListener('twonara:persistent-state', syncValue);
+  }, [key]);
+
   return [value, setValue];
 }
 
