@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gift, Heart, MapPin, MessageCircle, PenLine, Search, ShieldCheck, Sparkles } from 'lucide-react';
 import { seedGifts, seedStories } from '../data/communitySeed';
+import { matchesDistrict, normalizeDistrict, SRI_LANKA_DISTRICTS } from '../data/sriLankaDistricts';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 function normalizePhone(phone = '') {
@@ -32,7 +33,7 @@ export function GiftShopPage({ location, session, onBack, onNeedLogin }) {
           description: row.description,
           priceText: row.price_text,
           priceAmount: Number(row.price_amount || 0),
-          location: row.location,
+          location: normalizeDistrict(row.location),
           whatsappPhone: row.whatsapp_phone,
           delivery: row.delivery_text,
           imageUrl: row.image_url,
@@ -44,10 +45,9 @@ export function GiftShopPage({ location, session, onBack, onNeedLogin }) {
   }, []);
 
   const visibleGifts = useMemo(() => {
-    const wantedLocation = String(location || '').toLowerCase();
     const q = query.trim().toLowerCase();
     return gifts.filter((gift) => {
-      const matchesLocation = !wantedLocation || wantedLocation === 'all sri lanka' || gift.location.toLowerCase().includes(wantedLocation);
+      const matchesLocation = matchesDistrict(gift.location, location);
       const searchable = `${gift.name} ${gift.shopName} ${gift.description} ${gift.delivery}`.toLowerCase();
       return matchesLocation && (!q || searchable.includes(q));
     });
@@ -91,12 +91,12 @@ export function GiftShopPage({ location, session, onBack, onNeedLogin }) {
               <span className="mini-label">{gift.shopName}</span>
               <h2>{gift.name}</h2>
               <p>{gift.description}</p>
-              <div className="gift-meta"><span><MapPin size={14} /> {gift.location}</span><span>{gift.delivery}</span></div>
+              <div className="gift-meta"><span><MapPin size={14} /> {gift.location} District</span><span>{gift.delivery}</span></div>
               <div className="gift-footer"><strong>{gift.priceText}</strong><button onClick={() => openGiftWhatsApp(gift)}><MessageCircle size={17} /> WhatsApp shop</button></div>
             </div>
           </article>
         ))}
-        {visibleGifts.length === 0 && <div className="simple-empty"><Gift size={28} /><h3>No matching gifts yet</h3><p>Try another search or explore all Sri Lanka.</p></div>}
+        {visibleGifts.length === 0 && <div className="simple-empty"><Gift size={28} /><h3>No matching gifts yet</h3><p>Try another district or explore all Sri Lanka.</p></div>}
       </section>
 
       <section className="section-wrap community-safe-note"><ShieldCheck size={20} /><div><strong>Safer shopping</strong><p>Twonara shows approved listings, but always confirm the current price, delivery details and seller information before ordering.</p></div></section>
@@ -107,7 +107,7 @@ export function GiftShopPage({ location, session, onBack, onNeedLogin }) {
 export function StoriesPage({ session, onBack, onNeedLogin }) {
   const [stories, setStories] = useState(seedStories);
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ title: '', story: '', location: 'Negombo', anonymous: true, displayName: '' });
+  const [form, setForm] = useState({ title: '', story: '', location: 'Gampaha', anonymous: true, displayName: '' });
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -125,7 +125,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
           id: row.id,
           title: row.title,
           story: row.story,
-          location: row.location,
+          location: normalizeDistrict(row.location),
           anonymous: row.anonymous,
           displayName: row.anonymous ? 'Anonymous Couple' : (row.display_name || 'Twonara Couple'),
           createdAt: row.created_at,
@@ -153,7 +153,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
       return;
     }
     if (!form.title.trim() || !form.story.trim() || !form.location.trim()) {
-      setMessage('Add a title, story and general city/area.');
+      setMessage('Add a title, story and district.');
       return;
     }
 
@@ -164,7 +164,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
         id: `story-${Date.now()}`,
         title: form.title.trim(),
         story: form.story.trim(),
-        location: form.location.trim(),
+        location: normalizeDistrict(form.location),
         anonymous: form.anonymous,
         displayName: form.anonymous ? 'Anonymous Couple' : (form.displayName.trim() || session.name || 'Twonara Couple'),
         createdAt: new Date().toISOString(),
@@ -186,7 +186,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
       }
 
       setStories((current) => [localStory, ...current]);
-      setForm({ title: '', story: '', location: 'Negombo', anonymous: true, displayName: '' });
+      setForm({ title: '', story: '', location: 'Gampaha', anonymous: true, displayName: '' });
       setFormOpen(false);
       setMessage('Your date story is live. Your account identity is not shown when Anonymous is selected.');
     } catch (error) {
@@ -218,7 +218,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
             <div className="panel-heading"><div><span className="mini-label">New story</span><h2>Share the experience, not private details</h2></div><button type="button" className="text-button" onClick={() => setFormOpen(false)}>Close</button></div>
             <div className="community-safe-note inline"><ShieldCheck size={19} /><p>Do not include phone numbers, exact live/home locations, school or workplace details, private messages, or other identifying information.</p></div>
             <label><span>Story title</span><input value={form.title} onChange={(event) => update('title', event.target.value)} maxLength={100} placeholder="e.g. Our simple sunset date" required /></label>
-            <label><span>General city / area</span><input value={form.location} onChange={(event) => update('location', event.target.value)} maxLength={80} placeholder="Negombo" required /></label>
+            <label><span>District</span><select value={form.location} onChange={(event) => update('location', event.target.value)} required>{SRI_LANKA_DISTRICTS.map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
             <label><span>Your story</span><textarea rows="7" value={form.story} onChange={(event) => update('story', event.target.value)} maxLength={2000} placeholder="What did you do? What made the plan enjoyable? Keep it useful for other couples." required /></label>
             <label className="anonymous-toggle"><input type="checkbox" checked={form.anonymous} onChange={(event) => update('anonymous', event.target.checked)} /><span><strong>Post anonymously</strong><small>Your Twonara account stays attached internally for moderation, but your identity is not shown publicly.</small></span></label>
             {!form.anonymous && <label><span>Public nickname</span><input value={form.displayName} onChange={(event) => update('displayName', event.target.value)} maxLength={60} placeholder="e.g. Two little explorers" /></label>}
@@ -230,7 +230,7 @@ export function StoriesPage({ session, onBack, onNeedLogin }) {
       <section className="section-wrap story-feed">
         {stories.map((story) => (
           <article className="story-card" key={story.id}>
-            <div className="story-card-top"><span className="story-avatar"><Heart size={17} fill="currentColor" /></span><div><strong>{story.displayName || 'Anonymous Couple'}</strong><span><MapPin size={13} /> {story.location}</span></div><small>{new Date(story.createdAt).toLocaleDateString()}</small></div>
+            <div className="story-card-top"><span className="story-avatar"><Heart size={17} fill="currentColor" /></span><div><strong>{story.displayName || 'Anonymous Couple'}</strong><span><MapPin size={13} /> {story.location} District</span></div><small>{new Date(story.createdAt).toLocaleDateString()}</small></div>
             <h2>{story.title}</h2>
             <p>{story.story}</p>
             {story.anonymous && <span className="anonymous-badge"><ShieldCheck size={13} /> Publicly anonymous</span>}

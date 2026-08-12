@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { normalizeDistrict } from '../data/sriLankaDistricts';
 import {
   consumeOAuthIntent,
   getSupabaseProfile,
@@ -14,7 +15,7 @@ function mapListing(row) {
     businessName: row.name,
     name: row.name,
     category: row.category,
-    location: row.location,
+    location: normalizeDistrict(row.location),
     address: row.address,
     description: row.description,
     price: row.price_text,
@@ -52,7 +53,7 @@ function mapPlan(row, ownerId) {
     ownerId,
     name: row.name,
     date: row.plan_date || '',
-    location: row.location,
+    location: normalizeDistrict(row.location),
     items: orderedItems.map((item) => item.place_ref),
     times: Object.fromEntries(orderedItems.filter((item) => item.visit_time).map((item) => [item.place_ref, String(item.visit_time).slice(0, 5)])),
     estimatedTotal: Number(row.estimated_total || 0),
