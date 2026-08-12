@@ -1,11 +1,80 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const env = import.meta.env || {};
+
+function cleanEnvValue(value) {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+function firstEnvValue(...keys) {
+  for (const key of keys) {
+    const value = cleanEnvValue(env[key]);
+    if (value) return value;
+  }
+  return '';
+}
+
+function isValidHttpUrl(value) {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+const supabaseUrl = firstEnvValue(
+  'VITE_SUPABASE_URL',
+  'VITE_PUBLIC_SUPABASE_URL',
+);
+
+// Primary name + backwards-compatible aliases. The anon/public browser key is safe
+// to expose in the Vite bundle; service_role/secret keys must never be used here.
+const supabaseKey = firstEnvValue(
+  'VITE_SUPABASE_PUBLISHABLE_KEY',
+  'VITE_SUPABASE_ANON_KEY',
+  'VITE_SUPABASE_KEY',
+  'VITE_SUPABASE_PUBLISHABLE',
+  'VITE_SUPABASE_PUBLIC_KEY',
+);
+
+const hasUrl = Boolean(supabaseUrl);
+const hasKey = Boolean(supabaseKey);
+const urlLooksValid = hasUrl && isValidHttpUrl(supabaseUrl);
+const keyLooksValid = hasKey && (
+  supabaseKey.startsWith('sb_publishable_')
+  || supabaseKey.startsWith('eyJ')
+  || supabaseKey.length > 40
+);
+
+export const supabaseConfigStatus = Object.freeze({
+  hasUrl,
+  hasKey,
+  urlLooksValid,
+  keyLooksValid,
+});
+
+export function getSupabaseConfigMessage() {
+  if (!hasUrl && !hasKey) {
+    return 'Missing Cloudflare build variables VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.';
+  }
+  if (!hasUrl) return 'Missing Cloudflare build variable VITE_SUPABASE_URL.';
+  if (!hasKey) return 'Missing Cloudflare build variable VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY).';
+  if (!urlLooksValid) return 'VITE_SUPABASE_URL is present but is not a valid http/https URL.';
+  if (!keyLooksValid) return 'The Supabase browser key is present but does not look valid. Use the publishable key or legacy anon key, not a service-role/secret key.';
+  return '';
+}
 
 const OAUTH_INTENT_KEY = 'twonara:oauth-intent';
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+export const isSupabaseConfigured = hasUrl && hasKey && urlLooksValid && keyLooksValid;
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseKey, {
@@ -18,7 +87,7 @@ export const supabase = isSupabaseConfigured
   : null;
 
 export async function signUpWithSupabase({ name, email, password, role = 'customer' }) {
-  if (!supabase) throw new Error('Supabase is not configured.');
+  if (!supabase) throw new Error(getSupabaseConfigMessage() || 'Supabase is not configured.');
 
   return supabase.auth.signUp({
     email,
@@ -30,12 +99,12 @@ export async function signUpWithSupabase({ name, email, password, role = 'custom
 }
 
 export async function signInWithSupabase({ email, password }) {
-  if (!supabase) throw new Error('Supabase is not configured.');
+  if (!supabase) throw new Error(getSupabaseConfigMessage() || 'Supabase is not configured.');
   return supabase.auth.signInWithPassword({ email, password });
 }
 
 export async function signInWithGoogle({ intentRole = 'customer' } = {}) {
-  if (!supabase) throw new Error('Supabase is not configured.');
+  if (!supabase) throw new Error(getSupabaseConfigMessage() || 'Supabase is not configured.');
 
   const safeIntent = intentRole === 'business' || intentRole === 'admin' ? intentRole : 'customer';
   window.sessionStorage.setItem(OAUTH_INTENT_KEY, safeIntent);
@@ -60,7 +129,7 @@ export function consumeOAuthIntent() {
 }
 
 export async function setMyAccountRole(role) {
-  if (!supabase) throw new Error('Supabase is not configured.');
+  if (!supabase) throw new Error(getSupabaseConfigMessage() || 'Supabase is not configured.');
   if (!['customer', 'business'].includes(role)) throw new Error('Invalid account role.');
 
   const { data, error } = await supabase.rpc('set_my_account_role', { new_role: role });
