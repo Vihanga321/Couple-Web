@@ -14,20 +14,35 @@ function mapListing(row) {
     ownerId: row.owner_id,
     businessName: row.name,
     name: row.name,
+    contactName: row.contact_name || '',
     category: row.category,
+    subtype: row.subtype || '',
     location: normalizeDistrict(row.location),
     address: row.address,
     description: row.description,
+    heroText: row.hero_text || '',
     price: row.price_text,
     estimatedCost: Number(row.estimated_cost || 0),
     phone: row.phone,
-    hours: row.opening_hours || 'Contact venue for hours',
+    whatsappPhone: row.whatsapp_phone || row.phone,
+    hours: row.opening_hours || 'Contact shop for hours',
     image: row.cover_image_url || '',
+    logoUrl: row.logo_url || '',
+    galleryUrls: Array.isArray(row.gallery_urls) ? row.gallery_urls : [],
+    packages: Array.isArray(row.packages) ? row.packages : [],
+    facilities: Array.isArray(row.facilities) ? row.facilities : [],
+    theme: row.theme || 'rose',
     adPlan: row.ad_plan,
     status: row.status,
+    pageStatus: row.page_status || 'draft',
     paymentStatus: row.payment_status,
+    featuredApproved: Boolean(row.featured_approved),
     featuredUntil: row.featured_until,
+    rejectionReason: row.rejection_reason || null,
+    approvedAt: row.approved_at || null,
+    publishedAt: row.published_at || null,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
     views: 0,
   };
 }
@@ -37,7 +52,7 @@ function mapReview(row) {
     id: row.id,
     placeId: row.place_ref,
     userId: row.user_id,
-    userName: 'Twonara user',
+    userName: 'Twonara customer',
     rating: Number(row.rating),
     comment: row.comment,
     trustLevel: row.trust_level || 'community',
@@ -61,26 +76,14 @@ function mapPlan(row, ownerId) {
   };
 }
 
-export function useSupabaseSync({
-  session,
-  setSession,
-  setListings,
-  setReviews,
-  setSavedItems,
-  setSavedPlans,
-  setUsers,
-}) {
+export function useSupabaseSync({ session, setSession, setListings, setReviews, setSavedItems, setSavedPlans, setUsers }) {
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return undefined;
-
     let active = true;
 
     const applyAuthUser = async (authUser) => {
       if (!active) return;
-      if (!authUser) {
-        setSession(null);
-        return;
-      }
+      if (!authUser) { setSession(null); return; }
 
       let profile = await getSupabaseProfile(authUser);
       if (!active || !profile) return;
@@ -96,7 +99,6 @@ export function useSupabaseSync({
       }
 
       if (!active || !profile) return;
-
       if (profile.status === 'suspended') {
         await supabase.auth.signOut();
         if (active) setSession(null);
@@ -104,77 +106,55 @@ export function useSupabaseSync({
       }
 
       setSession(profile);
-
       if (oauthIntent && typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('twonara:oauth-complete', {
-          detail: { intent: oauthIntent, role: profile.role },
-        }));
+        window.dispatchEvent(new CustomEvent('twonara:oauth-complete', { detail: { intent: oauthIntent, role: profile.role } }));
       }
     };
 
     supabase.auth.getSession().then(({ data }) => applyAuthUser(data.session?.user || null));
-
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       window.setTimeout(() => applyAuthUser(nextSession?.user || null), 0);
     });
-
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
+    return () => { active = false; listener.subscription.unsubscribe(); };
   }, [setSession]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return undefined;
-
     let active = true;
-
     const loadPublicData = async () => {
       const [listingResult, reviewResult] = await Promise.all([
         supabase.from('listings').select('*').order('created_at', { ascending: false }),
         supabase.from('reviews').select('*').order('created_at', { ascending: false }),
       ]);
-
       if (!active) return;
       if (!listingResult.error) setListings((listingResult.data || []).map(mapListing));
       if (!reviewResult.error) setReviews((reviewResult.data || []).map(mapReview));
     };
-
     loadPublicData();
     return () => { active = false; };
   }, [session?.id, setListings, setReviews]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !session?.id) {
-      if (isSupabaseConfigured) {
-        setSavedItems([]);
-        setSavedPlans([]);
-      }
+      if (isSupabaseConfigured) { setSavedItems?.([]); setSavedPlans?.([]); }
       return undefined;
     }
-
     let active = true;
-
     const loadPrivateData = async () => {
-      const [favoriteResult, planResult] = await Promise.all([
-        supabase.from('favorites').select('place_ref').eq('user_id', session.id),
-        supabase
-          .from('date_plans')
-          .select('id, name, plan_date, location, estimated_total, created_at, date_plan_items(place_ref, position, visit_time)')
-          .eq('user_id', session.id)
-          .order('created_at', { ascending: false }),
-      ]);
-
-      if (!active) return;
-      if (!favoriteResult.error) setSavedItems((favoriteResult.data || []).map((item) => item.place_ref));
-      if (!planResult.error) setSavedPlans((planResult.data || []).map((row) => mapPlan(row, session.id)));
-
-      if (session.role === 'admin') {
+      if (setSavedItems && setSavedPlans) {
+        const [favoriteResult, planResult] = await Promise.all([
+          supabase.from('favorites').select('place_ref').eq('user_id', session.id),
+          supabase.from('date_plans').select('id, name, plan_date, location, estimated_total, created_at, date_plan_items(place_ref, position, visit_time)').eq('user_id', session.id).order('created_at', { ascending: false }),
+        ]);
+        if (!active) return;
+        if (!favoriteResult.error) setSavedItems((favoriteResult.data || []).map((item) => item.place_ref));
+        if (!planResult.error) setSavedPlans((planResult.data || []).map((row) => mapPlan(row, session.id)));
+      }
+      if (session.role === 'admin' && setUsers) {
         const { data, error } = await supabase.from('profiles').select('id, name, role, status, created_at').order('created_at', { ascending: false });
         if (active && !error) setUsers((data || []).map((profileRow) => ({ ...profileRow, email: 'Private' })));
       }
     };
-
     loadPrivateData();
     return () => { active = false; };
   }, [session?.id, session?.role, setSavedItems, setSavedPlans, setUsers]);
@@ -182,7 +162,6 @@ export function useSupabaseSync({
 
 export async function persistFavorite({ session, placeId, currentlySaved }) {
   if (!isSupabaseConfigured || !supabase || !session?.id) return;
-
   if (currentlySaved) {
     const { error } = await supabase.from('favorites').delete().eq('user_id', session.id).eq('place_ref', placeId);
     if (error) throw error;
