@@ -26,13 +26,30 @@ const MAIN_LOCATIONS = [
   'Ratnapura',
 ];
 
+function findLocationTarget() {
+  const homeSearch = document.querySelector('.market-home .market-search-zone');
+  if (homeSearch) return { element: homeSearch, mode: 'home' };
+
+  const customerHeader = document.querySelector('.market-topbar');
+  if (customerHeader) return { element: customerHeader, mode: 'global' };
+
+  const portalHeader = document.querySelector('.portal-page .portal-head');
+  if (portalHeader) return { element: portalHeader, mode: 'portal' };
+
+  return null;
+}
+
 export default function HomeLocationDropdown() {
   const [target, setTarget] = useState(null);
   const [location, setLocation] = useState(() => readStore('twonara:location', 'Negombo'));
 
   useEffect(() => {
     const refreshTarget = () => {
-      setTarget(document.querySelector('.market-home .market-search-zone'));
+      const next = findLocationTarget();
+      setTarget((current) => {
+        if (current?.element === next?.element && current?.mode === next?.mode) return current;
+        return next;
+      });
     };
 
     refreshTarget();
@@ -62,13 +79,15 @@ export default function HomeLocationDropdown() {
     }));
   };
 
-  if (!target) return null;
+  if (!target?.element) return null;
+
+  const label = target.mode === 'portal' ? 'Customer location' : 'Location';
 
   return createPortal(
-    <div className="home-location-dropdown">
+    <div className={`home-location-dropdown location-mode-${target.mode}`}>
       <div className="home-location-dropdown-label">
         <MapPin size={15} />
-        <span>Location</span>
+        <span>{label}</span>
       </div>
       <div className="home-location-select-wrap">
         <select value={location} onChange={changeLocation} aria-label="Choose a main location in Sri Lanka">
@@ -77,6 +96,6 @@ export default function HomeLocationDropdown() {
         <ChevronDown size={17} aria-hidden="true" />
       </div>
     </div>,
-    target,
+    target.element,
   );
 }
