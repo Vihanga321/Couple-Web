@@ -14,7 +14,7 @@ export const seedPlaces = [
     subtype: 'Waterfront',
     note: 'Dinner with a calm evening view',
     description: 'A relaxed waterfront restaurant made for slow dinners, easy conversation and sunset views.',
-    location: 'Negombo',
+    location: 'Gampaha',
     address: 'Lewis Place, Negombo',
     distanceKm: 1.8,
     rating: 4.8,
@@ -36,7 +36,7 @@ export const seedPlaces = [
   {
     id: 'place-2', name: 'Sunset Paddle', category: 'Do', subtype: 'Outdoor', note: 'A relaxed evening activity for two',
     description: 'A gentle paddle experience around the lagoon during the cooler evening hours.',
-    location: 'Negombo', address: 'Negombo Lagoon, Negombo', distanceKm: 3.1, rating: 4.7, reviews: 96,
+    location: 'Gampaha', address: 'Negombo Lagoon, Negombo', distanceKm: 3.1, rating: 4.7, reviews: 96,
     price: 'From Rs. 3,000', priceLevel: 2, estimatedCost: 3000,
     packages: [{ label: 'Sunset session', price: 3000 }, { label: 'Extended session', price: 4500 }],
     time: 'Best before sunset', openNow: true,
@@ -46,7 +46,7 @@ export const seedPlaces = [
   {
     id: 'place-3', name: 'Cinema Nook', category: 'Privacy', subtype: 'Mini Cinema', note: 'A small private screening space',
     description: 'A bookable private screening room with a comfortable setup for two and clear venue rules.',
-    location: 'Negombo', address: 'Colombo Road, Negombo', distanceKm: 2.4, rating: 4.6, reviews: 132,
+    location: 'Gampaha', address: 'Colombo Road, Negombo', distanceKm: 2.4, rating: 4.6, reviews: 132,
     price: 'Packages available', priceLevel: 1, estimatedCost: 6500,
     packages: [{ label: '1 hour', price: 6500 }, { label: '2 hours', price: 9000 }],
     time: 'Slots available today', openNow: true,
@@ -56,7 +56,7 @@ export const seedPlaces = [
   {
     id: 'place-4', name: 'Lagoon Calm', category: 'Relax', subtype: 'Quiet View', note: 'Quiet views and an easy evening',
     description: 'A peaceful lagoon-side spot for an unhurried afternoon or early evening stop.',
-    location: 'Negombo', address: 'Lagoon View Road, Negombo', distanceKm: 4.0, rating: 4.9, reviews: 211,
+    location: 'Gampaha', address: 'Lagoon View Road, Negombo', distanceKm: 4.0, rating: 4.9, reviews: 211,
     price: 'From Rs. 1,500', priceLevel: 1, estimatedCost: 1500,
     packages: [{ label: 'Tea & sunset stop', price: 1500 }],
     time: 'Open until 9:30 PM', openNow: true,
@@ -66,7 +66,7 @@ export const seedPlaces = [
   {
     id: 'place-5', name: 'Palm Stay', category: 'Stay', subtype: 'Beach Stay', note: 'A cozy overnight escape near the coast',
     description: 'A small coastal stay with comfortable rooms and easy beach access. Accommodation follows the property’s age and ID rules.',
-    location: 'Negombo', address: 'Porutota Road, Negombo', distanceKm: 5.2, rating: 4.7, reviews: 149,
+    location: 'Gampaha', address: 'Porutota Road, Negombo', distanceKm: 5.2, rating: 4.7, reviews: 149,
     price: 'From Rs. 12,000', priceLevel: 3, estimatedCost: 12000,
     packages: [{ label: '1 night', price: 12000 }, { label: '1 night + breakfast', price: 14500 }],
     time: 'Check-in from 2:00 PM', openNow: true,
@@ -76,7 +76,7 @@ export const seedPlaces = [
   {
     id: 'place-6', name: 'Little Italy', category: 'Eat', subtype: 'Restaurant', note: 'Pizza, pasta and an easy date-night mood',
     description: 'A casual restaurant with warm lighting, shareable dishes and a relaxed atmosphere.',
-    location: 'Negombo', address: 'Beach Road, Negombo', distanceKm: 2.7, rating: 4.5, reviews: 238,
+    location: 'Gampaha', address: 'Beach Road, Negombo', distanceKm: 2.7, rating: 4.5, reviews: 238,
     price: 'Rs. 2,000 – 4,500', priceLevel: 2, estimatedCost: 3250,
     packages: [{ label: 'Meal for two', price: 3250 }, { label: 'Meal + dessert', price: 4200 }],
     time: 'Open until 10:30 PM', openNow: true,
@@ -86,7 +86,7 @@ export const seedPlaces = [
   {
     id: 'place-7', name: 'Clay Date Studio', category: 'Do', subtype: 'Creative', note: 'Make something together and take it home',
     description: 'A beginner-friendly creative session where two people can paint or shape a small clay piece together.',
-    location: 'Negombo', address: 'Main Street, Negombo', distanceKm: 3.8, rating: 4.8, reviews: 74,
+    location: 'Gampaha', address: 'Main Street, Negombo', distanceKm: 3.8, rating: 4.8, reviews: 74,
     price: 'From Rs. 3,500', priceLevel: 2, estimatedCost: 3500,
     packages: [{ label: 'Couple session', price: 3500 }, { label: 'Extended workshop', price: 5000 }],
     time: 'Sessions until 8:00 PM', openNow: false,
@@ -96,7 +96,7 @@ export const seedPlaces = [
   {
     id: 'place-8', name: 'Cloud Spa', category: 'Relax', subtype: 'Spa', note: 'A calm wellness stop for your date plan',
     description: 'A modern wellness space offering short relaxation packages in a quiet setting.',
-    location: 'Negombo', address: 'St. Joseph Street, Negombo', distanceKm: 4.6, rating: 4.6, reviews: 103,
+    location: 'Gampaha', address: 'St. Joseph Street, Negombo', distanceKm: 4.6, rating: 4.6, reviews: 103,
     price: 'From Rs. 4,000', priceLevel: 2, estimatedCost: 4000,
     packages: [{ label: '60 minute session', price: 4000 }, { label: '90 minute session', price: 5500 }],
     time: 'Open until 9:00 PM', openNow: true,
@@ -120,7 +120,7 @@ export const seedUsers = [
 export const seedBusinessListings = [
   {
     id: 'listing-demo-1', ownerId: 'user-business', businessName: 'Moonlight Café', name: 'Moonlight Café', category: 'Eat', subtype: 'Cafe',
-    location: 'Negombo', address: 'Sea Street, Negombo', description: 'A small café with evening seating and a simple menu for two.',
+    location: 'Gampaha', address: 'Sea Street, Negombo', description: 'A small café with evening seating and a simple menu for two.',
     price: 'Rs. 1,500 – 3,500', estimatedCost: 2500, packages: [{ label: 'Cafe date for two', price: 2500 }], phone: '+94 77 000 1111', hours: '4:00 PM – 11:00 PM',
     image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=85', adPlan: 'premium',
     status: 'pending', paymentStatus: 'demo', createdAt: '2026-08-10T03:25:00+05:30',
