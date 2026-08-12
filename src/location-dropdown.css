@@ -61,18 +61,71 @@
   pointer-events: none;
 }
 
+/* Homepage: keep the selector directly below the search field. */
+.location-mode-home {
+  width: 100%;
+}
+
+/* Every other customer page: show location as a second compact row in the sticky header. */
+.market-topbar > .location-mode-global {
+  width: min(1180px, calc(100% - 28px));
+  grid-template-columns: auto minmax(170px, 280px);
+  justify-content: flex-start;
+  margin: -2px auto 8px;
+  padding: 6px 9px;
+  border-radius: 12px;
+  box-shadow: none;
+  background: rgba(255,255,255,.88);
+}
+
+.market-topbar > .location-mode-global .home-location-select-wrap select {
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 12px;
+}
+
+/* Business/Admin pages: keep the same shared location ready for when users return to discovery. */
+.portal-head > .location-mode-portal {
+  width: min(520px, 100%);
+  grid-template-columns: auto minmax(0, 1fr);
+  margin-top: 14px;
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .market-topbar > .location-mode-global {
+    width: calc(100% - 20px);
+    grid-template-columns: auto minmax(0, 1fr);
+    margin-bottom: 7px;
+    padding: 6px 8px;
+  }
+
+  .market-topbar > .location-mode-global .home-location-dropdown-label {
+    font-size: 10px;
+  }
+
+  .market-topbar > .location-mode-global .home-location-select-wrap select {
+    min-height: 34px;
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 520px) {
-  .home-location-dropdown {
+  .location-mode-home,
+  .location-mode-portal {
     grid-template-columns: 1fr;
     gap: 7px;
     padding: 9px 10px;
   }
 
-  .home-location-dropdown-label {
+  .location-mode-home .home-location-dropdown-label,
+  .location-mode-portal .home-location-dropdown-label {
     font-size: 11px;
   }
 
-  .home-location-select-wrap select {
+  .location-mode-home .home-location-select-wrap select,
+  .location-mode-portal .home-location-select-wrap select {
     min-height: 40px;
     font-size: 13px;
   }
